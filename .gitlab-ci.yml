@@ -32,9 +32,11 @@ deploy:
     SSH_KEY_FILE: /tmp/deploy_key.pem
   before_script:
     - apt-get update -qq && apt-get install -y -qq openssh-client
-    # SSH_PRIVATE_KEY: File type = path to key file; Variable type = key content
+    # Prefer SSH_KEY_BASE64 (avoids GitLab encoding issues). Else use SSH_PRIVATE_KEY (File or Variable).
     - |
-      if [ -f "$SSH_PRIVATE_KEY" ]; then
+      if [ -n "$SSH_KEY_BASE64" ]; then
+        echo "$SSH_KEY_BASE64" | base64 -d > /tmp/deploy_key.pem
+      elif [ -f "$SSH_PRIVATE_KEY" ]; then
         cat "$SSH_PRIVATE_KEY" | tr -d '\r' > /tmp/deploy_key.pem
       else
         printf '%s' "$SSH_PRIVATE_KEY" | tr -d '\r' > /tmp/deploy_key.pem
