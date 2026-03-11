@@ -151,7 +151,19 @@ export class AdminService {
     if (existing)
       throw new ConflictException(`Icon with name "${dto.name}" already exists`);
 
-    return this.iconRepo.save(this.iconRepo.create(dto));
+    if (!dto.assetKey && !dto.imageUrl) {
+      throw new ConflictException(
+        'Provide either assetKey (app-bundled) or imageUrl (uploaded icon)',
+      );
+    }
+
+    return this.iconRepo.save(
+      this.iconRepo.create({
+        name: dto.name,
+        assetKey: dto.assetKey ?? null,
+        imageUrl: dto.imageUrl ?? null,
+      }),
+    );
   }
 
   async listIcons(): Promise<TaskIcon[]> {

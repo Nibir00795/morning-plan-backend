@@ -15,10 +15,12 @@ import { RemindersModule } from './reminders/reminders.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { EventsModule } from './events/events.module';
 import { AdminModule } from './admin/admin.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    StorageModule,
 
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'admin'),
