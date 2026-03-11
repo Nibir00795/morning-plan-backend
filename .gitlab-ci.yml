@@ -28,27 +28,27 @@ build:
 deploy:
   stage: deploy
   image: ubuntu:22.04
+  variables:
+    SSH_KEY_FILE: /tmp/deploy_key.pem
   before_script:
     - apt-get update -qq && apt-get install -y -qq openssh-client
-    - eval $(ssh-agent -s)
     # SSH_PRIVATE_KEY: File type = path to key file; Variable type = key content
     - |
       if [ -f "$SSH_PRIVATE_KEY" ]; then
-        cp "$SSH_PRIVATE_KEY" /tmp/deploy_key.pem
+        cat "$SSH_PRIVATE_KEY" | tr -d '\r' > /tmp/deploy_key.pem
       else
         printf '%s' "$SSH_PRIVATE_KEY" | tr -d '\r' > /tmp/deploy_key.pem
       fi
       chmod 600 /tmp/deploy_key.pem
-      ssh-add /tmp/deploy_key.pem
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
   script:
-    - scp -o StrictHostKeyChecking=no image.tar.gz $SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/image.tar.gz
-    - scp -o StrictHostKeyChecking=no docker-compose.prod.yml $SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/docker-compose.yml
-    - scp -o StrictHostKeyChecking=no deploy/nginx.conf $SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/nginx.conf
+    - scp -i $SSH_KEY_FILE -o StrictHostKeyChecking=no image.tar.gz $SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/image.tar.gz
+    - scp -i $SSH_KEY_FILE -o StrictHostKeyChecking=no docker-compose.prod.yml $SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/docker-compose.yml
+    - scp -i $SSH_KEY_FILE -o StrictHostKeyChecking=no deploy/nginx.conf $SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/nginx.conf
     - |
-      ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << ENDSSH
+      ssh -i $SSH_KEY_FILE -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << ENDSSH
         cd $DEPLOY_DIR
         docker load < image.tar.gz
         rm -f image.tar.gz
