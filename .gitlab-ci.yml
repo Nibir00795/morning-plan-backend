@@ -32,16 +32,18 @@ deploy:
     SSH_KEY_FILE: /tmp/deploy_key.pem
   before_script:
     - apt-get update -qq && apt-get install -y -qq openssh-client
-    # Prefer SSH_KEY_BASE64 (avoids GitLab encoding issues). Else use SSH_PRIVATE_KEY (File or Variable).
+    # SSH key: File type = path; Variable type (Masked=No) = key content. Use PEM format (-----BEGIN RSA PRIVATE KEY-----).
     - |
-      if [ -n "$SSH_KEY_BASE64" ]; then
-        echo "$SSH_KEY_BASE64" | base64 -d > /tmp/deploy_key.pem
-      elif [ -f "$SSH_PRIVATE_KEY" ]; then
-        cat "$SSH_PRIVATE_KEY" | tr -d '\r' > /tmp/deploy_key.pem
-      else
+      if [ -f "$SSH_PRIVATE_KEY" ]; then
+        cp "$SSH_PRIVATE_KEY" /tmp/deploy_key.pem
+      elif [ -n "$SSH_PRIVATE_KEY" ]; then
         printf '%s' "$SSH_PRIVATE_KEY" | tr -d '\r' > /tmp/deploy_key.pem
+      else
+        echo "ERROR: Set SSH_PRIVATE_KEY (File or Variable, Masked=No) in GitLab CI/CD"
+        exit 1
       fi
       chmod 600 /tmp/deploy_key.pem
+      head -1 /tmp/deploy_key.pem | grep -q "BEGIN.*PRIVATE KEY" || { echo "ERROR: Invalid key. Use PEM format (ssh-keygen -t rsa -m PEM)"; exit 1; }
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
