@@ -9,10 +9,10 @@ export class TaskIcon {
   name: string;
 
   /** App-bundled icon identifier (e.g. droplet, sun-01). Used when imageUrl is null. */
-  @Column({ name: 'asset_key', nullable: true })
+  @Column({ name: 'asset_key', type: 'varchar', nullable: true })
   assetKey: string | null;
 
   /** URL of uploaded icon image. When set, app uses this instead of assetKey. */
-  @Column({ name: 'image_url', nullable: true })
+  @Column({ name: 'image_url', type: 'varchar', nullable: true })
   imageUrl: string | null;
 }
