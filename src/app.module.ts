@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { FamousPersonsModule } from './famous-persons/famous-persons.module';
@@ -17,6 +19,12 @@ import { AdminModule } from './admin/admin.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'admin'),
+      serveRoot: '/admin',
+      serveStaticOptions: { index: ['index.html'] },
+    }),
 
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
