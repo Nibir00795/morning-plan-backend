@@ -1,93 +1,166 @@
-# Morning Plan Backend
+# Morning Plan — Backend API
 
+A production-ready REST API for a habit-tracking mobile app, built with NestJS and TypeScript. Handles task management, streaks, push notifications, subscription billing, file storage, and analytics.
 
+## Tech Stack
 
-## Getting started
+| Layer | Technology |
+|---|---|
+| Framework | NestJS 11, TypeScript |
+| Database | PostgreSQL 16 + TypeORM |
+| Cache / Queue | Redis 7 + BullMQ |
+| Auth | Supabase JWT |
+| Push Notifications | Firebase Cloud Messaging (FCM) |
+| Subscriptions | RevenueCat webhooks |
+| File Storage | AWS S3-compatible (MinIO) |
+| Containerization | Docker + Docker Compose |
+| CI/CD | GitLab CI/CD + Nginx reverse proxy |
+| API Docs | Swagger / OpenAPI (auto-generated) |
+| Admin Panel | React + Vite (in `/admin-panel`) |
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Features
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- **Task management** — create, complete, and organize daily habits with free/premium tier limits
+- **Streak tracking** — calculates and maintains user streaks across daily completions
+- **Push notifications** — cron-scheduled reminders via Firebase Cloud Messaging with per-device token management
+- **Subscription management** — handles RevenueCat webhook events (7 types) for free/premium feature gating
+- **File storage** — avatar and media uploads to S3-compatible storage (MinIO in dev, any S3 bucket in prod)
+- **Analytics** — DAU/WAU/MAU metrics, cohort analysis, and completion rate tracking
+- **Famous persons** — curated content module for daily inspiration
+- **Admin panel** — React-based internal dashboard for content management
 
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Project Structure
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/logipx/morning-plan-backend.git
-git branch -M main
-git push -uf origin main
+src/
+├── auth/           # Supabase JWT strategy + guards
+├── tasks/          # Core habit/task CRUD
+├── streaks/        # Streak calculation logic
+├── reminders/      # BullMQ-based push notification scheduler
+├── fcm/            # Firebase Cloud Messaging service
+├── webhooks/       # RevenueCat subscription webhooks
+├── storage/        # S3-compatible file upload service
+├── analytics/      # DAU/WAU/MAU + cohort analytics
+├── users/          # User profile management
+├── device-tokens/  # FCM device token registry
+├── completions/    # Daily completion tracking
+├── day-starts/     # Day-start event tracking
+├── famous-persons/ # Curated content
+├── events/         # App event logging
+├── admin/          # Admin-only endpoints
+├── common/         # Shared guards, decorators, interceptors
+└── entities/       # TypeORM entity definitions
 ```
 
-## Integrate with your tools
+## Getting Started
 
-* [Set up project integrations](https://gitlab.com/logipx/morning-plan-backend/-/settings/integrations)
+### Prerequisites
 
-## Collaborate with your team
+- Node.js 18+
+- Docker + Docker Compose
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### 1. Clone and install dependencies
 
-## Test and Deploy
+```bash
+git clone https://github.com/Nibir00795/morning-plan-backend.git
+cd morning-plan-backend
+npm install
+```
 
-Use the built-in continuous integration in GitLab.
+### 2. Configure environment
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+```bash
+cp .env.example .env
+# Edit .env with your credentials
+```
 
-***
+Key variables to set:
 
-# Editing this README
+```env
+# Supabase (required for auth)
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_JWT_SECRET=
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+# Firebase (required for push notifications)
+FCM_PROJECT_ID=
+FCM_PRIVATE_KEY=
+FCM_CLIENT_EMAIL=
 
-## Suggestions for a good README
+# RevenueCat (required for subscription webhooks)
+REVENUECAT_WEBHOOK_SECRET=
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### 3. Start infrastructure (Postgres, Redis, MinIO)
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+docker-compose up -d
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+### 4. Run the API
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+```bash
+# Development (with hot reload)
+npm run start:dev
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+# Production
+npm run build
+npm run start:prod
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+The API will be available at `http://localhost:3000`.
+Swagger docs: `http://localhost:3000/api`
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+## API Documentation
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Auto-generated Swagger UI is available at `/api` when the server is running. All endpoints are documented with request/response schemas.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+## Running Tests
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```bash
+# Unit tests
+npm run test
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+# Test coverage
+npm run test:cov
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+# End-to-end tests
+npm run test:e2e
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+## Production Deployment
+
+The project includes a Docker-based deployment setup:
+
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+CI/CD is configured via `.gitlab-ci.yml` and deploys automatically on pushes to `main` via SSH to the production server, behind an Nginx reverse proxy.
+
+## Admin Panel
+
+A React + Vite admin dashboard lives in `/admin-panel`. To run it locally:
+
+```bash
+cd admin-panel
+npm install
+npm run dev
+```
+
+## Seeding
+
+```bash
+npm run seed
+```
+
+Populates the database with initial content (famous persons, default task categories, etc.).
+
+## Environment Variables
+
+See [`.env.example`](.env.example) for the full list of required and optional variables with descriptions.
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Private — all rights reserved.
